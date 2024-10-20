@@ -1,13 +1,21 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from 'typeorm';
-import {Request} from './../request/request.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
+import { Request } from './../request/request.entity';
+import { User } from '../user/user.entity';
 
 @Entity()
 export class Logist {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @OneToMany(() => Request, request => request.logist)
-    requests: Request[];
+  @OneToOne(() => User, (user) => user.logist)
+  user: User;
 
-    // Может быть другие отношения
+  @OneToMany(() => Request, (request) => request.logist)
+  requests: Request[];
+
 }

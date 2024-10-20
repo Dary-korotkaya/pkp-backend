@@ -1,31 +1,30 @@
 import { Logist } from 'src/logist/logist.entity';
 import { Supplier } from 'src/supplier/supplier.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
 export class Request {
-    @PrimaryGeneratedColumn()
-    requestId: string;
+  @PrimaryGeneratedColumn()
+  requestId: string;
 
-    @Column()
-    logist: Logist;
+  // @Column()
+  // logist: Logist;
+  //
+  // @Column()
+  // supplier: Supplier;
 
-    @Column()
-    supplier: Supplier;
+  @Column()
+  productId: string;
 
-    @Column()
-    productId: string;
+  @Column()
+  dateOfDelivery: Date;
 
-    @Column()
-    dateOfDelivery: Date;
+  @Column()
+  addressOfDelivery: string;
 
-    @Column()
-    addressOfDelivery: string;
+  @Column()
+  productType: string;
 
-    @Column()
-    productType: string;
-
-    @Column()
-    description: string;
-
+  @Column()
+  description: string;
 }

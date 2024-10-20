@@ -9,7 +9,14 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { LogistModule } from './logist/logist.module';
 
 @Module({
-  imports: [UserModule, TypeormModule, SupplierModule, RequestModule, AnalyticsModule, LogistModule],
+  imports: [
+    UserModule,
+    TypeormModule,
+    SupplierModule,
+    RequestModule,
+    AnalyticsModule,
+    LogistModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -1,35 +1,41 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  JoinColumn,
+  OneToOne,
+} from 'typeorm';
+import { Supplier } from '../supplier/supplier.entity';
+import { Logist } from '../logist/logist.entity';
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column()
-    logistId: string;
+  @OneToOne(() => Logist, (logist) => logist.user)
+  @JoinColumn()
+  logist: Logist;
 
-    @Column()
-    supplierId: string;
+  @OneToOne(() => Supplier, (supplier) => supplier.user)
+  @JoinColumn()
+  supplier: Supplier;
 
-    @Column()
-    fullName: string;
+  @Column()
+  fullName: string;
 
-    @Column()
-    dateOfBirth: Date;
+  @Column()
+  dateOfBirth: Date;
 
-    @Column()
-    phoneNumber: string;
+  @Column()
+  phoneNumber: string;
 
-    @Column()
-    email: string;
+  @Column()
+  email: string;
 
-    @Column()
-    login: string;
+  @Column()
+  login: string;
 
-    @Column()
-    password: string;
-
-    @Column()
-    additionalINFO: string;
-
+  @Column()
+  password: string;
 }
