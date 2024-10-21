@@ -1,5 +1,7 @@
 import {
+  ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -9,15 +11,26 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'jsonwebtoken';
+import { EditUserDto } from './dtos/EditUser.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
-  // updateUser(user: User): void {
-  //   // Логика обновления пользователя
-  // }
+
+  async updateUser(id: string, userDto: EditUserDto): Promise<boolean> {
+    let user = await this.userRepository.findOneBy({ id: id });
+
+    if (!user) {
+      return false;
+    }
+    user = { ...user, ...userDto };
+
+    await this.userRepository.save(user);
+
+    return true;
+  }
   //
   // logReplyToRequest(requestId: number, replyDetails: any): void {
   //   // Логика ответа на заявку от поставщика
@@ -72,5 +85,25 @@ export class UserService {
     } catch (error) {
       throw new UnauthorizedException('Invalid token');
     }
+  }
+  async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt();
+    return bcrypt.hash(password, salt);
+  }
+
+  async createUser(dto: Partial<User>): Promise<User> {
+    const existingUser = await this.userRepository.findOne({
+      where: [{ phoneNumber: dto.phoneNumber }, { email: dto.email }],
+    });
+
+    if (existingUser) {
+      throw new ConflictException(
+        'User with this email or phone number already exists',
+      );
+    }
+
+    dto.password = await this.hashPassword(dto.password);
+
+    return this.userRepository.save(dto);
   }
 }

@@ -27,13 +27,13 @@ export class User {
   @Column({ nullable: true })
   dateOfBirth: Date;
 
-  @Column()
+  @Column({ unique: true })
   phoneNumber: string;
 
   @Column()
   email: string;
 
-  @Column()
+  @Column({ unique: true })
   login: string;
 
   @Column()

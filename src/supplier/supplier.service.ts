@@ -1,14 +1,37 @@
 import { Injectable } from '@nestjs/common';
 import { Supplier } from './supplier.entity';
+import { CreateSupplierDto } from './dtos/CreateSupplier.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserService } from '../user/user.service';
+import { User } from '../user/user.entity';
+import { EditSupplierDto } from './dtos/EditSupplier.dto';
 
 @Injectable()
 export class SupplierService {
-  private readonly suppliers: Supplier[] = [];
+  constructor(
+    @InjectRepository(Supplier)
+    private readonly supplierRepository: Repository<Supplier>,
+    private readonly userService: UserService,
+  ) {}
 
-  deleteSupplier(supplierId: number): void {}
+  async updateSupplier(
+    user: User,
+    supplierDto: EditSupplierDto,
+  ): Promise<boolean> {
+    let supplier = await this.supplierRepository.findOneBy({
+      user: { id: user.id },
+    });
 
-  updateSupplier(supplier: Supplier): void {
-    // Логика обновления поставщика
+    if (!supplier) {
+      return false;
+    }
+
+    await this.userService.updateUser(user.id, supplierDto);
+
+    supplier = { ...supplier, ...supplierDto };
+    await this.supplierRepository.save(supplier);
+    return true;
   }
 
   supReplyToRequest(requestId: number, replyDetails: any): void {
@@ -27,15 +50,25 @@ export class SupplierService {
     // Логика добавления товара в каталог
   }
 
-    createSupplier(dto: CreateSupplierDto) {
-        return '';
-    }
+  async createSupplier(dto: CreateSupplierDto) {
+    const user: User = await this.userService.createUser(dto);
 
-    getAllSuppliers() {
-        return '';
-    }
+    const supplier = this.supplierRepository.create({
+      companyAddress: dto.companyAddress,
+      companyName: dto.companyName,
+      productType: dto.productType,
+      user: user,
+    });
 
-    getSupplierById(id: string) {
-        return '';
-    }
+    await this.supplierRepository.save(supplier);
+    return true;
+  }
+
+  getAllSuppliers() {
+    return '';
+  }
+
+  getSupplierById(id: string) {
+    return '';
+  }
 }

@@ -7,6 +7,8 @@ import {
 } from 'typeorm';
 import { Request } from '../request/request.entity';
 import { User } from '../user/user.entity';
+import { Product } from '../product/product.entity';
+
 export enum ProductType {
   FRUITS_AND_VEGETABLES = 'Fruits and vegetables',
   DAIRY_PRODUCTS = 'Dairy products',
@@ -19,6 +21,7 @@ export enum ProductType {
   BEVERAGES = 'Beverages',
   SPICES = 'Spices and seasonings',
 }
+
 @Entity()
 export class Supplier {
   @PrimaryGeneratedColumn()
@@ -38,4 +41,7 @@ export class Supplier {
 
   @OneToMany(() => Request, (request) => request.supplier)
   requests: Request[];
+
+  @OneToMany(() => Product, (product) => product.supplier)
+  products: Product[];
 }

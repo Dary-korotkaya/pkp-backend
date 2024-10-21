@@ -1,23 +1,15 @@
-import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsPhoneNumber, IsString } from 'class-validator';
+import { ProductType } from '../supplier.entity';
+import { CreateUserDto } from '../../user/dtos/CreateUserDto';
 
-export class CreateSupplierDto {
+export class CreateSupplierDto extends CreateUserDto {
   @IsString()
   @IsNotEmpty()
-  fullName: string;
+  companyAddress: string;
 
   @IsString()
-  @IsEmail()
-  email: string;
+  companyName: string;
 
-  @IsString()
-  @IsNotEmpty()
-  password: string;
-
-  @IsString()
-  @IsNotEmpty()
-  address: string;
-
-  @IsString()
-  @IsPhoneNumber()
-  phone: string;
+  @IsEnum(ProductType)
+  productType: ProductType;
 }
