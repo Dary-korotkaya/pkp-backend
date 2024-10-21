@@ -1,22 +1,22 @@
 import { Logist } from 'src/logist/logist.entity';
 import { Supplier } from 'src/supplier/supplier.entity';
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 
 @Entity()
 export class Request {
   @PrimaryGeneratedColumn()
   requestId: string;
 
-  // @Column()
-  // logist: Logist;
-  //
-  // @Column()
-  // supplier: Supplier;
+  @ManyToOne(() => Logist, (logist) => logist.requests, { eager: true })
+  logist: Logist;
 
-  @Column()
-  productId: string;
+  @ManyToOne(() => Supplier, (supplier) => supplier.requests, { eager: true })
+  supplier: Supplier;
 
-  @Column()
+  // @Column()
+  // productId: string;
+
+  @Column({ type: 'timestamp' })
   dateOfDelivery: Date;
 
   @Column()

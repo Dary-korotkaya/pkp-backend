@@ -24,7 +24,7 @@ export class User {
   @Column()
   fullName: string;
 
-  @Column()
+  @Column({ nullable: true })
   dateOfBirth: Date;
 
   @Column()
