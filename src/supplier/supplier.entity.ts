@@ -6,7 +6,7 @@ import {
   OneToOne,
 } from 'typeorm';
 import { Request } from '../request/request.entity';
-import { User } from '../user/user.entity';
+import { Users } from '../user/user.entity';
 import { Product } from '../product/product.entity';
 
 export enum ProductType {
@@ -27,8 +27,8 @@ export class Supplier {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @OneToOne(() => User, (user) => user.supplier)
-  user: User;
+  @OneToOne(() => Users, (user) => user.supplier)
+  user: Users;
 
   @Column()
   companyName: string;

@@ -5,18 +5,19 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { User } from './user.entity';
+import { Users } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'jsonwebtoken';
 import { EditUserDto } from './dtos/EditUser.dto';
+import { log } from 'console';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Users) private readonly userRepository: Repository<Users>,
   ) {}
 
   async updateUser(id: string, userDto: EditUserDto): Promise<boolean> {
@@ -32,15 +33,18 @@ export class UserService {
     return true;
   }
 
-  async authenticateUser(login: string, password: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ login: login });
+  async authenticateUser(login: string, password: string): Promise<Users> {
+    const user = await this.userRepository.findOne({
+      where: { login: login },
+      relations: { supplier: true, logist: true },
+    });
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordMatching = await bcrypt.compare(password, user.password);
-
+    // const isPasswordMatching = await bcrypt.compare(password, user.password);
+    const isPasswordMatching = password === user.password;
     if (!isPasswordMatching) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -48,20 +52,20 @@ export class UserService {
     return user;
   }
 
-  async findById(id: string): Promise<User> {
+  async findById(id: string): Promise<Users> {
     const user = await this.userRepository.findOne({
       where: { id: id },
       relations: { supplier: true, logist: true },
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`Users with ID ${id} not found`);
     }
 
     return user;
   }
 
-  createToken(user: User): string {
+  createToken(user: Users): string {
     let role = 'user';
 
     if (user.supplier) {
@@ -87,14 +91,14 @@ export class UserService {
     return bcrypt.hash(password, salt);
   }
 
-  async createUser(dto: Partial<User>): Promise<User> {
+  async createUser(dto: Partial<Users>): Promise<Users> {
     const existingUser = await this.userRepository.findOne({
       where: [{ phoneNumber: dto.phoneNumber }, { email: dto.email }],
     });
 
     if (existingUser) {
       throw new ConflictException(
-        'User with this email or phone number already exists',
+        'Users with this email or phone number already exists',
       );
     }
 

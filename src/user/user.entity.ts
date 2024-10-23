@@ -9,7 +9,7 @@ import { Supplier } from '../supplier/supplier.entity';
 import { Logist } from '../logist/logist.entity';
 
 @Entity()
-export class User {
+export class Users {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

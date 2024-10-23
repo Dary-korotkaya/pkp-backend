@@ -8,7 +8,7 @@ import { Request } from 'src/request/request.entity';
 import { Supplier } from 'src/supplier/supplier.entity';
 import { Product } from 'src/product/product.entity';
 import { RequestProductInfo } from 'src/request/RequestProductInfo.entity';
-import { User } from 'src/user/user.entity';
+import { Users } from 'src/user/user.entity';
 
 config({ path: join(process.cwd(), '.env') });
 const configService = new ConfigService();
@@ -23,7 +23,7 @@ const options = (): DataSourceOptions => {
     url: url,
     type: 'postgres',
     logging: false,
-    entities: [User, Logist, Request, Supplier, Product, RequestProductInfo],
+    entities: [Users, Logist, Request, Supplier, Product, RequestProductInfo],
     migrations: ['dist/migrations/*.{ts,js}'],
     synchronize: true,
   };

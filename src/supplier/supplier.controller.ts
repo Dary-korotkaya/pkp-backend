@@ -14,7 +14,7 @@ import { Role } from '../user/decorators/role.decorator';
 import { Roles } from '../user/domain/roles.enum';
 import { EditUserDto } from '../user/dtos/EditUser.dto';
 import { Me } from '../user/decorators/Me.decorator';
-import { User } from '../user/user.entity';
+import { Users } from '../user/user.entity';
 
 @Controller('supplier')
 export class SupplierController {
@@ -41,7 +41,7 @@ export class SupplierController {
   @Put('update')
   @Role(Roles.LOGISTIC)
   @UseGuards(UserGuard)
-  async updateSupplier(@Me() user: User, @Body() dto: EditUserDto) {
+  async updateSupplier(@Me() user: Users, @Body() dto: EditUserDto) {
     const success = await this.supplierService.updateSupplier(user, dto);
     return { success: success };
   }

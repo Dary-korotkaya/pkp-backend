@@ -4,7 +4,7 @@ import { CreateSupplierDto } from './dtos/CreateSupplier.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
-import { User } from '../user/user.entity';
+import { Users } from '../user/user.entity';
 import { EditSupplierDto } from './dtos/EditSupplier.dto';
 
 @Injectable()
@@ -16,7 +16,7 @@ export class SupplierService {
   ) {}
 
   async updateSupplier(
-    user: User,
+    user: Users,
     supplierDto: EditSupplierDto,
   ): Promise<boolean> {
     let supplier = await this.supplierRepository.findOneBy({
@@ -59,7 +59,7 @@ export class SupplierService {
   }
 
   async createSupplier(dto: CreateSupplierDto) {
-    const user: User = await this.userService.createUser(dto);
+    const user: Users = await this.userService.createUser(dto);
 
     const supplier = this.supplierRepository.create({
       companyAddress: dto.companyAddress,
