@@ -21,7 +21,7 @@ export class User {
   @JoinColumn()
   supplier: Supplier;
 
-  @Column()
+  @Column({ nullable: true })
   fullName: string;
 
   @Column({ nullable: true })

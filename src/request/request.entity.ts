@@ -1,5 +1,5 @@
 import { Logist } from 'src/logist/logist.entity';
-import { ProductType, Supplier } from 'src/supplier/supplier.entity';
+import { Supplier } from 'src/supplier/supplier.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -19,6 +19,20 @@ export enum RequestStatus {
   WAITING_FOR_PAYMENT,
   COMPLETED,
 }
+
+enum ProductType {
+  FRUITS_AND_VEGETABLES = 'Fruits and vegetables',
+  DAIRY_PRODUCTS = 'Dairy products',
+  MEAT = 'Meat and poultry',
+  FISH = 'Fish and seafood',
+  BAKERY_PRODUCTS = 'Bakery products',
+  CANNED_FOOD = 'Canned food',
+  FROZEN_FOOD = 'Frozen food',
+  SWEETS = 'Sweets and snacks',
+  BEVERAGES = 'Beverages',
+  SPICES = 'Spices and seasonings',
+}
+
 @Entity()
 export class Request {
   @PrimaryGeneratedColumn('uuid')

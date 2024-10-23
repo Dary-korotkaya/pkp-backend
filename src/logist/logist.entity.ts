@@ -1,9 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  OneToMany,
-  OneToOne,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, OneToMany, OneToOne } from 'typeorm';
 import { Request } from '../request/request.entity';
 import { User } from '../user/user.entity';
 

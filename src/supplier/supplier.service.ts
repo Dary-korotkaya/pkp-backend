@@ -50,6 +50,14 @@ export class SupplierService {
     // Логика добавления товара в каталог
   }
 
+  getAllSuppliers(): string {
+    return '';
+  }
+
+  getSupplierById(id: string): string {
+    return '';
+  }
+
   async createSupplier(dto: CreateSupplierDto) {
     const user: User = await this.userService.createUser(dto);
 
