@@ -15,7 +15,7 @@ export class LogistController {
   @Put('edit')
   @Role(Roles.LOGISTIC)
   async editLogist(@Me() user: Users, @Body() dto: EditUserDto) {
-    // console.log(user);
+    console.log(user);
     const success = this.userService.updateUser(user.id, dto);
     return { success: success };
   }
