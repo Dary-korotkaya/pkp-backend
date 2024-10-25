@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsPhoneNumber, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { ProductType } from '../supplier.entity';
 import { CreateUserDto } from '../../user/dtos/CreateUserDto';
 

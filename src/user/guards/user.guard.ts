@@ -18,15 +18,14 @@ export class UserGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const roles = this.reflector.get<string[]>('roles', context.getHandler());
-
-    console.log(roles);
+    const roles = this.reflector.get<string[]>('role', context.getHandler());
 
     if (!roles) {
       return true;
     }
     const request = context.switchToHttp().getRequest();
     const token = request.cookies['token'];
+    // console.log(token);
 
     try {
       const decoded = this.userService.verifyToken(
@@ -34,6 +33,7 @@ export class UserGuard implements CanActivate {
         process.env.JWT_SECRET,
       );
       const userRole = decoded.role;
+    //   console.log(userRole);
       return roles.includes(userRole);
     } catch (error) {
       throw new UnauthorizedException('Invalid token');

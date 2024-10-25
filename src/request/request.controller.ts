@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { RequestService } from './request.service';
 import { UserGuard } from '../user/guards/user.guard';
 import { Role } from '../user/decorators/role.decorator';
@@ -67,6 +75,18 @@ export class RequestController {
   @Role(Roles.LOGISTIC)
   async getAllCurrentRequests(@Me('logist') logist: Logist) {
     return this.requestService.getAllCurrentRequests(logist.id);
+  }
+
+  @Get(':id')
+  @Role(Roles.LOGISTIC)
+  async getRequestById(@Param('id') id: string) {
+    try {
+      const request = await this.requestService.findOne(id);
+
+      return request;
+    } catch {
+      throw new NotFoundException(`Request with id: ${id} not found`);
+    }
   }
 
   @Get('all/history')

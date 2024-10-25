@@ -102,7 +102,7 @@ export class UserService {
       );
     }
 
-    dto.password = await this.hashPassword(dto.password);
+    // dto.password = await this.hashPassword(dto.password);
 
     return this.userRepository.save(dto);
   }

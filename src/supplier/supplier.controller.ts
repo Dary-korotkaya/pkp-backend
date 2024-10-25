@@ -39,7 +39,7 @@ export class SupplierController {
   }
 
   @Put('update')
-  @Role(Roles.LOGISTIC)
+  @Role(Roles.SUPPLIER)
   @UseGuards(UserGuard)
   async updateSupplier(@Me() user: Users, @Body() dto: EditUserDto) {
     const success = await this.supplierService.updateSupplier(user, dto);

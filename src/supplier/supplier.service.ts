@@ -50,12 +50,20 @@ export class SupplierService {
     // Логика добавления товара в каталог
   }
 
-  getAllSuppliers(): string {
-    return '';
+  getAllSuppliers(): any {
+    const suppliers = this.supplierRepository.find();
+    if (!suppliers) {
+      throw new NotFoundException('Suppliers not found');
+    }
+    return suppliers;
   }
 
-  getSupplierById(id: string): string {
-    return '';
+  getSupplierById(id: string): any {
+    const supplier = this.supplierRepository.findOneBy({ id: id });
+    if (!supplier) {
+      throw new NotFoundException('Supplier not found');
+    }
+    return supplier;
   }
 
   async createSupplier(dto: CreateSupplierDto) {
