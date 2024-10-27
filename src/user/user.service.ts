@@ -86,10 +86,7 @@ export class UserService {
       throw new UnauthorizedException('Invalid token');
     }
   }
-  async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt();
-    return bcrypt.hash(password, salt);
-  }
+
 
   async createUser(dto: Partial<Users>): Promise<Users> {
     const existingUser = await this.userRepository.findOne({
@@ -103,7 +100,6 @@ export class UserService {
     }
 
     // dto.password = await this.hashPassword(dto.password);
-
     return this.userRepository.save(dto);
   }
 }

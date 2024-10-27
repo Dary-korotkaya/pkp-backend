@@ -2,16 +2,19 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Supplier } from './supplier.entity';
 import { CreateSupplierDto } from './dtos/CreateSupplier.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { Users } from '../user/user.entity';
 import { EditSupplierDto } from './dtos/EditSupplier.dto';
+import { Request, RequestStatus } from '../request/request.entity';
 
 @Injectable()
 export class SupplierService {
   constructor(
     @InjectRepository(Supplier)
     private readonly supplierRepository: Repository<Supplier>,
+    @InjectRepository(Request)
+    private readonly requestRepository: Repository<Request>,
     private readonly userService: UserService,
   ) {}
 
@@ -34,28 +37,20 @@ export class SupplierService {
     return true;
   }
 
-  supReplyToRequest(requestId: number, replyDetails: any): void {
-    // Логика ответа на заявку от логиста
-  }
-
-  changeRequestStatus(requestId: number, status: string): void {
-    // Логика изменения статуса заявки на поставку
-  }
-
-  viewRequestHistorySupplier(supplierId: number): any {
-    // Логика просмотра истории заявок
-  }
-
-  addProductToCatalog(userId: number, productDetails: any): void {
-    // Логика добавления товара в каталог
-  }
-
   getAllSuppliers(): any {
-    const suppliers = this.supplierRepository.find();
-    if (!suppliers) {
-      throw new NotFoundException('Suppliers not found');
-    }
-    return suppliers;
+    return this.supplierRepository
+      .find({ relations: ['user'] })
+      .then((suppliers) => {
+        if (!suppliers) {
+          return [];
+        }
+        return suppliers.map((supplier) => ({
+          id: supplier.id,
+          fullName: supplier.user.fullName,
+          phoneNumber: supplier.user.phoneNumber,
+          email: supplier.user.email,
+        }));
+      });
   }
 
   getSupplierById(id: string): any {
@@ -69,14 +64,13 @@ export class SupplierService {
   async createSupplier(dto: CreateSupplierDto) {
     const user: Users = await this.userService.createUser(dto);
 
-    const supplier = this.supplierRepository.create({
-      companyAddress: dto.companyAddress,
-      companyName: dto.companyName,
-      productType: dto.productType,
-      user: user,
-    });
-
+    const supplier = new Supplier();
+    supplier.companyAddress = dto.companyAddress;
+    supplier.companyName = dto.companyName;
+    supplier.productType = dto.productType;
+    supplier.user = user;
     await this.supplierRepository.save(supplier);
+
     return true;
   }
 
@@ -86,5 +80,39 @@ export class SupplierService {
       throw new NotFoundException('Supplier not found');
     }
     return supplier;
+  }
+
+  async getSuppliersHistory() {
+    const suppliers = await this.supplierRepository.find({
+      relations: { user: true },
+    });
+
+    if (!suppliers) {
+      throw new NotFoundException('No suppliers found');
+    }
+
+    const suppliersHistory = [];
+
+    for (const supplier of suppliers) {
+      const completedRequests = await this.requestRepository.count({
+        where: { supplier, status: RequestStatus.COMPLETED },
+      });
+
+      const uncompletedRequests = await this.requestRepository.count({
+        where: { supplier, status: Not(RequestStatus.COMPLETED) },
+      });
+
+      suppliersHistory.push({
+        id: supplier.id,
+        supplierName: supplier.user.fullName,
+        contactNumber: supplier.user.phoneNumber,
+        email: supplier.user.email,
+        category: supplier.productType,
+        completedRequests,
+        uncompletedRequests,
+      });
+    }
+
+    return suppliersHistory;
   }
 }

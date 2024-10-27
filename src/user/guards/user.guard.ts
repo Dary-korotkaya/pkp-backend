@@ -20,20 +20,18 @@ export class UserGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const roles = this.reflector.get<string[]>('role', context.getHandler());
 
-    if (!roles) {
-      return true;
-    }
     const request = context.switchToHttp().getRequest();
     const token = request.cookies['token'];
-    // console.log(token);
-
+    console.log(token);
     try {
       const decoded = this.userService.verifyToken(
         token,
         process.env.JWT_SECRET,
       );
+      if (!roles) {
+        return true;
+      }
       const userRole = decoded.role;
-    //   console.log(userRole);
       return roles.includes(userRole);
     } catch (error) {
       throw new UnauthorizedException('Invalid token');

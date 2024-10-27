@@ -3,10 +3,12 @@ import {
   Entity,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Supplier } from '../supplier/supplier.entity';
 import { Request } from '../request/request.entity';
+import { RequestProductInfo } from '../request/RequestProductInfo.entity';
 
 enum ProductType {
   FRUITS_AND_VEGETABLES = 'Fruits and vegetables',
@@ -32,7 +34,7 @@ export class Product {
   @Column({ default: 0 })
   totalQuantity: number;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'float' })
   price: number;
 
   @Column({ default: true })
@@ -46,4 +48,10 @@ export class Product {
 
   @ManyToOne(() => Supplier, (supplier) => supplier.products)
   supplier: Supplier;
+
+  @OneToMany(
+    () => RequestProductInfo,
+    (requestProductInfo) => requestProductInfo.request,
+  )
+  requestProductInfos: RequestProductInfo[];
 }

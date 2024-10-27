@@ -5,13 +5,15 @@ import {
 } from '@nestjs/common';
 import { CreateRequestDto } from './dtos/CreateRequest.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { Request, RequestStatus } from './request.entity';
 import { LogistService } from '../logist/logist.service';
 import { Product } from '../product/product.entity';
 import { SupplierService } from '../supplier/supplier.service';
 import { ReplyDto } from './dtos/Reply.dto';
 import { ChangeStatusDto } from './dtos/ChangeStatus.dto';
+import { RequestProductInfo } from './RequestProductInfo.entity';
+import { ProductType, Supplier } from '../supplier/supplier.entity';
 
 @Injectable()
 export class RequestService {
@@ -19,7 +21,11 @@ export class RequestService {
     @InjectRepository(Request) private requestRepository: Repository<Request>,
     @InjectRepository(Product) private productRepository: Repository<Product>,
     private readonly logistService: LogistService,
+    @InjectRepository(RequestProductInfo)
+    private requestProductInfo: Repository<RequestProductInfo>,
     private readonly supplierService: SupplierService,
+    @InjectRepository(Supplier)
+    private readonly supplierRepository: Repository<Supplier>,
   ) {}
 
   async create(logistId: string, createRequestDto: CreateRequestDto) {
@@ -28,8 +34,11 @@ export class RequestService {
     const productIds = createRequestDto.productInfo.map(
       (info) => info.productId,
     );
-    const products = await this.productRepository.findBy({
-      id: In(productIds),
+    const products = await this.productRepository.find({
+      where: {
+        id: In(productIds),
+      },
+      relations: ['supplier'], // Убедитесь, что связь supplier определена в сущности Product
     });
 
     const supplierIds = new Set(products.map((product) => product.supplier.id));
@@ -45,13 +54,23 @@ export class RequestService {
       ...createRequestDto,
       logist: logist,
       supplier: supplier,
-      productInfo: products.map((product, i) => ({
-        product,
-        quantity: createRequestDto.productInfo[i].quantity,
-      })),
+      productType: supplier.productType,
     });
 
-    return this.requestRepository.save(request);
+    const createdRequest = await this.requestRepository.save(request);
+
+    // Создание и сохранение всех productInfo
+    const requestProductInfos = products.map((product, i) => {
+      const requestProductInfo = new RequestProductInfo();
+      requestProductInfo.request = createdRequest;
+      requestProductInfo.product = product;
+      requestProductInfo.quantity = createRequestDto.productInfo[i].quantity;
+      return requestProductInfo;
+    });
+
+    await this.requestProductInfo.save(requestProductInfos);
+
+    return createdRequest;
   }
 
   async supReplyToRequest(
@@ -89,6 +108,7 @@ export class RequestService {
       newStatus: newStatus,
     };
   }
+
   async findOne(id: string): Promise<Request> {
     const request = this.requestRepository.findOne({
       where: { id: id },
@@ -99,6 +119,7 @@ export class RequestService {
     }
     return request;
   }
+
   async changeRequestStatus(requestId: string, status: ChangeStatusDto) {
     const request = await this.findOne(requestId);
 
@@ -124,28 +145,183 @@ export class RequestService {
     if (request.logist.id === logist.id) {
       throw new ConflictException('This logist cannot confirm this request');
     }
-    if (request.status !== RequestStatus.WAITING_FOR_PAYMENT) {
-      throw new ConflictException('Request is not confirmed');
-    }
 
     request.status = RequestStatus.COMPLETED;
     await this.requestRepository.save(request);
     return true;
   }
 
-  getAllCurrentRequests(id: string) {
-    return Promise.resolve(undefined);
+  async getAllCurrentRequests(
+    logisticId: string,
+    sortByPrice: 'asc' | 'desc',
+  ): Promise<any[]> {
+    const requests = await this.requestRepository.find({
+      where: {
+        logist: { id: logisticId },
+        status: Not(RequestStatus.COMPLETED),
+      },
+      relations: ['productInfo', 'productInfo.product'],
+    });
+
+    const requestsWithTotalPrice = requests.map((request) => {
+      const totalPrice = request.productInfo.reduce(
+        (sum, productInfo) =>
+          sum + productInfo.product.price * productInfo.quantity,
+        0,
+      );
+      return {
+        ...request,
+        totalPrice: totalPrice.toFixed(2),
+      };
+    });
+
+    if (sortByPrice) {
+      requestsWithTotalPrice.sort((a, b) =>
+        sortByPrice === 'asc'
+          ? parseFloat(a.totalPrice) - parseFloat(b.totalPrice)
+          : parseFloat(b.totalPrice) - parseFloat(a.totalPrice),
+      );
+    }
+
+    return requestsWithTotalPrice.map((request) => {
+      return {
+        id: request.id,
+        endpoint: request.addressOfDelivery,
+        category: request.productType,
+        status: request.status,
+        totalPrice: request.totalPrice,
+      };
+    });
   }
 
-  getAllHistoryRequests(id: string) {
-    return Promise.resolve(undefined);
+  async getAllHistoryRequests() {
+    const historyRequests = await this.requestRepository.find({
+      relations: [
+        'productInfo',
+        'productInfo.product',
+        'supplier',
+        'supplier.user',
+      ],
+    });
+
+    if (!historyRequests) {
+      throw new NotFoundException('No history requests found');
+    }
+
+    const formattedHistoryRequests = [];
+
+    for (const request of historyRequests) {
+      let totalQuantity = 0;
+      let totalPrice = 0;
+      for (const productInfo of request.productInfo) {
+        const product = await this.productRepository.findOne({
+          where: {
+            id: productInfo.product.id,
+          },
+        });
+
+        totalQuantity += productInfo.quantity;
+        totalPrice += product.price * productInfo.quantity;
+      }
+
+      formattedHistoryRequests.push({
+        id: request.id,
+        supplierName: request.supplier.user.fullName,
+        date: request.dateOfDelivery.toISOString(),
+        category: request.productType,
+        numberOfItems: request.productInfo.length,
+        totalQuantity,
+        totalPrice: totalPrice.toFixed(2),
+      });
+    }
+
+    return formattedHistoryRequests;
   }
 
-  getSupplierCurrentRequests(id) {
-    return Promise.resolve(undefined);
+  async getRequestsSuppliers() {
+    const totalRequests = await this.requestRepository.count();
+    const totalSuppliers = await this.supplierRepository.count();
+    const completedRequests = await this.requestRepository.count({
+      where: { status: RequestStatus.COMPLETED },
+    });
+    const incompletedRequests = totalRequests - completedRequests;
+    const averageCompleted = totalRequests
+      ? completedRequests / totalRequests
+      : 0;
+
+    const categoryData = [];
+    for (const type in ProductType) {
+      const total = await this.requestRepository.count({
+        where: { productType: ProductType[type] },
+      });
+      categoryData.push({ category: ProductType[type], total });
+    }
+
+    return {
+      totalRequests,
+      totalSuppliers,
+      completedRequests,
+      incompletedRequests,
+      averageCompleted,
+      categoryData,
+    };
   }
 
-  getSupplierHistoryRequests(id) {
-    return Promise.resolve(undefined);
+  async getFinanceChartData() {
+    const requests = await this.requestRepository.find({
+      relations: ['productInfo', 'productInfo.product'],
+    });
+    const financeChartData = [];
+    let total = 0;
+
+    for (const type in ProductType) {
+      const requestsByType = requests.filter(
+        (request) => request.productType === ProductType[type],
+      );
+      let amount = 0;
+
+      for (const request of requestsByType) {
+        for (const productInfo of request.productInfo) {
+          amount += productInfo.product.price * productInfo.quantity;
+        }
+      }
+
+      financeChartData.push({ category: ProductType[type], amount });
+      total += amount;
+    }
+
+    return {
+      data: financeChartData,
+      total,
+    };
+  }
+
+  async getHistoryOfOperations() {
+    const requests = await this.requestRepository.find({
+      relations: [
+        'supplier',
+        'supplier.user',
+        'productInfo',
+        'productInfo.product',
+      ],
+      where: { status: RequestStatus.COMPLETED },
+    });
+    const operations = requests.map((request) => {
+      const totalPrice = request.productInfo.reduce(
+        (sum, productInfo) =>
+          sum + productInfo.product.price * productInfo.quantity,
+        0,
+      );
+      return {
+        id: request.id,
+        supplier: request.supplier.user.fullName,
+        date: request.dateOfDelivery.toISOString(),
+        totalPrice: totalPrice.toFixed(2),
+      };
+    });
+
+    return {
+      operations,
+    };
   }
 }

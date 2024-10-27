@@ -7,12 +7,12 @@ import {
   Post,
   Put,
   Res,
-  UnauthorizedException,
+  UnauthorizedException, UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { Users } from './user.entity';
-import { EditUserDto } from './dtos/EditUser.dto';
 import { Me } from './decorators/Me.decorator';
+import { Users } from './user.entity';
+import { UserGuard } from './guards/user.guard';
 
 @Controller('user')
 export class UserController {
@@ -40,6 +40,12 @@ export class UserController {
     }
   }
 
+  @Get('/me')
+  @UseGuards(UserGuard)
+  async me(@Me() user: Users) {
+    return user;
+  }
+
   @Get(':id')
   async findUserById(@Param('id') id: string) {
     try {
@@ -50,4 +56,6 @@ export class UserController {
       throw new NotFoundException(`User with id: ${id} not found`);
     }
   }
+
+
 }

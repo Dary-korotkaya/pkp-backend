@@ -15,6 +15,7 @@ export class ProductService {
     supplier: Supplier,
     dto: CreateProductDto,
   ): Promise<boolean> {
+    console.log(dto);
     await this.productRepository.save({
       ...dto,
       supplier: supplier,
@@ -23,19 +24,11 @@ export class ProductService {
     return true;
   }
 
-  async listProducts(type: ProductType, limit: number = 10, page: number = 1) {
+  async listProducts(type: ProductType) {
     const query = this.productRepository.createQueryBuilder('product');
 
     if (type) {
       query.where('product.type = :type', { type });
-    }
-
-    if (limit) {
-      query.limit(limit);
-    }
-
-    if (page) {
-      query.offset((page - 1) * limit);
     }
 
     return query.getMany();

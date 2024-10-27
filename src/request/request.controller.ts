@@ -5,6 +5,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { RequestService } from './request.service';
@@ -73,37 +74,40 @@ export class RequestController {
 
   @Get('all/current')
   @Role(Roles.LOGISTIC)
-  async getAllCurrentRequests(@Me('logist') logist: Logist) {
-    return this.requestService.getAllCurrentRequests(logist.id);
+  async getAllCurrentRequests(
+    @Me('logist') logist: Logist,
+    @Query('sortByPrice') sortByPrice: 'asc' | 'desc',
+  ) {
+    return this.requestService.getAllCurrentRequests(logist.id, sortByPrice);
+  }
+
+  @Get('statistics')
+  async getRequestsSuppliers() {
+    return this.requestService.getRequestsSuppliers();
+  }
+
+  @Get('finance-chart')
+  async getFinanceChartData() {
+    return this.requestService.getFinanceChartData();
   }
 
   @Get(':id')
   @Role(Roles.LOGISTIC)
   async getRequestById(@Param('id') id: string) {
     try {
-      const request = await this.requestService.findOne(id);
-
-      return request;
+      return await this.requestService.findOne(id);
     } catch {
       throw new NotFoundException(`Request with id: ${id} not found`);
     }
   }
 
   @Get('all/history')
-  @Role(Roles.LOGISTIC)
-  async getAllHistoryRequests(@Me('logist') logist: Logist) {
-    return this.requestService.getAllHistoryRequests(logist.id);
+  async getAllHistoryRequests() {
+    return this.requestService.getAllHistoryRequests();
   }
 
-  @Get('supplier/current')
-  @Role(Roles.SUPPLIER)
-  async getSupplierCurrentRequests(@Me('supplier') supplier) {
-    return this.requestService.getSupplierCurrentRequests(supplier.id);
-  }
-
-  @Get('supplier/history')
-  @Role(Roles.SUPPLIER)
-  async getSupplierHistoryRequests(@Me('supplier') supplier) {
-    return this.requestService.getSupplierHistoryRequests(supplier.id);
+  @Get('completed/history')
+  async getCompletedHistoryRequests() {
+    return this.requestService.getHistoryOfOperations();
   }
 }

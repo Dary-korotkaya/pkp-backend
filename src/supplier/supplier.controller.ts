@@ -33,6 +33,11 @@ export class SupplierController {
     return this.supplierService.getAllSuppliers();
   }
 
+  @Get('history')
+  async getSupplierHistory() {
+    return this.supplierService.getSuppliersHistory();
+  }
+
   @Get(':id')
   getSupplierById(@Param('id') id: string): string {
     return this.supplierService.getSupplierById(id);

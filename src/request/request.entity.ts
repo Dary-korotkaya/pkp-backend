@@ -16,7 +16,6 @@ export enum RequestStatus {
   COLLECTION,
   ON_THE_WAY,
   DELIVERED,
-  WAITING_FOR_PAYMENT,
   COMPLETED,
 }
 

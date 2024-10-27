@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get, Param,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { UserGuard } from '../user/guards/user.guard';
 import { Roles } from '../user/domain/roles.enum';
@@ -32,12 +24,8 @@ export class ProductController {
   }
 
   @Get('list')
-  listProducts(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-    @Query('type') type: ProductType,
-  ) {
-    return this.productService.listProducts(type, limit, page);
+  async listProducts(@Query('type') type: ProductType) {
+    return await this.productService.listProducts(type);
   }
 
   @Put('update/:id')

@@ -10,7 +10,7 @@ export class RequestProductInfo {
   @ManyToOne(() => Request, (request) => request.productInfo)
   request: Request;
 
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product, (product) => product.requestProductInfos)
   product: Product;
 
   @Column()
