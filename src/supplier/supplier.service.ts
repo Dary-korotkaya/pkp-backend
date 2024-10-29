@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Supplier } from './supplier.entity';
 import { CreateSupplierDto } from './dtos/CreateSupplier.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -62,6 +66,14 @@ export class SupplierService {
   }
 
   async createSupplier(dto: CreateSupplierDto) {
+    const supplierWithType = await this.supplierRepository.findOneBy({
+      productType: dto.productType,
+    });
+    if (supplierWithType) {
+      throw new ConflictException(
+        'Supplier with such product type already exists',
+      );
+    }
     const user: Users = await this.userService.createUser(dto);
 
     const supplier = new Supplier();

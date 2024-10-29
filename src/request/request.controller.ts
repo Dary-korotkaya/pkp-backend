@@ -17,6 +17,7 @@ import { Me } from '../user/decorators/Me.decorator';
 import { Logist } from '../logist/logist.entity';
 import { ReplyDto } from './dtos/Reply.dto';
 import { ChangeStatusDto } from './dtos/ChangeStatus.dto';
+import { Supplier } from '../supplier/supplier.entity';
 
 @Controller('request')
 @UseGuards(UserGuard)
@@ -50,7 +51,7 @@ export class RequestController {
   @Role(Roles.SUPPLIER)
   async changeRequestStatus(
     @Param('requestId') requestId: string,
-    @Body('status') status: ChangeStatusDto,
+    @Body() status: ChangeStatusDto,
   ) {
     const success = await this.requestService.changeRequestStatus(
       requestId,
@@ -101,6 +102,14 @@ export class RequestController {
     }
   }
 
+  @Get('info/:id')
+  async getRequestInfoById(@Param('id') id: string) {
+    try {
+      return await this.requestService.getOrderInfo(id);
+    } catch {
+      throw new NotFoundException(`Request with id: ${id} not found`);
+    }
+  }
   @Get('all/history')
   async getAllHistoryRequests() {
     return this.requestService.getAllHistoryRequests();
@@ -109,5 +118,15 @@ export class RequestController {
   @Get('completed/history')
   async getCompletedHistoryRequests() {
     return this.requestService.getHistoryOfOperations();
+  }
+
+  @Get('supplier/table')
+  async getRequestTableSupplierData(@Me('supplier') supplier: Supplier) {
+    return this.requestService.getRequestTableSupplierData(supplier.id);
+  }
+
+  @Get('supplier/history')
+  async getSupplierHistory(@Me('supplier') supplier: Supplier) {
+    return this.requestService.getSupplierHistory(supplier.id);
   }
 }

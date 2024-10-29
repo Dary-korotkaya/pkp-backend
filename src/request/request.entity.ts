@@ -19,7 +19,7 @@ export enum RequestStatus {
   COMPLETED,
 }
 
-enum ProductType {
+export enum ProductType {
   FRUITS_AND_VEGETABLES = 'Fruits and vegetables',
   DAIRY_PRODUCTS = 'Dairy products',
   MEAT = 'Meat and poultry',

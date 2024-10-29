@@ -10,7 +10,9 @@ export class RequestProductInfo {
   @ManyToOne(() => Request, (request) => request.productInfo)
   request: Request;
 
-  @ManyToOne(() => Product, (product) => product.requestProductInfos)
+  @ManyToOne(() => Product, (product) => product.requestProductInfos, {
+    onDelete: 'CASCADE',
+  })
   product: Product;
 
   @Column()

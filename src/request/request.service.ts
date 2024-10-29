@@ -120,6 +120,41 @@ export class RequestService {
     return request;
   }
 
+  async getOrderInfo(orderId: string) {
+    const order = await this.requestRepository.findOne({
+      where: { id: orderId },
+      relations: [
+        'productInfo',
+        'productInfo.product',
+        'logist',
+        'logist.user',
+      ],
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with id: ${orderId} not found`);
+    }
+
+    const products = order.productInfo.map((productInfo) => ({
+      id: productInfo.product.id,
+      name: productInfo.product.name,
+      totalPrice: productInfo.product.price * productInfo.quantity,
+      quantity: productInfo.quantity,
+    }));
+
+    return {
+      id: order.id,
+      customer: order.logist.user.fullName,
+      date: order.dateOfDelivery.toISOString(),
+      address: order.addressOfDelivery,
+      totalPrice: products.reduce(
+        (sum, product) => sum + product.totalPrice,
+        0,
+      ),
+      category: order.productType,
+      products,
+    };
+  }
   async changeRequestStatus(requestId: string, status: ChangeStatusDto) {
     const request = await this.findOne(requestId);
 
@@ -323,5 +358,41 @@ export class RequestService {
     return {
       operations,
     };
+  }
+
+  async getRequestTableSupplierData(supplierId: string) {
+    const requests = await this.requestRepository.find({
+      where: { supplier: { id: supplierId }, status: Not(RequestStatus.COMPLETED) },
+      relations: ['productInfo', 'productInfo.product'],
+    });
+    return requests.map((request) => ({
+      id: request.id,
+      date: request.dateOfDelivery.toLocaleDateString('ru-RU'),
+      endpoint: request.addressOfDelivery,
+      category: request.productType,
+      status: request.status,
+      totalPrice: request.productInfo.reduce(
+        (total, product) => total + product.product.price * product.quantity,
+        0,
+      ),
+    }));
+  }
+
+  async getSupplierHistory(supplierId: string) {
+    const requests = await this.requestRepository.find({
+      where: { supplier: { id: supplierId }, status: RequestStatus.COMPLETED },
+      relations: ['productInfo', 'productInfo.product'],
+    });
+    return requests.map((request) => ({
+      id: request.id,
+      date: request.dateOfDelivery.toLocaleDateString('ru-RU'),
+      endpoint: request.addressOfDelivery,
+      category: request.productType,
+      status: request.status,
+      totalPrice: request.productInfo.reduce(
+        (total, product) => total + product.product.price * product.quantity,
+        0,
+      ),
+    }));
   }
 }

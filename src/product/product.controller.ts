@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller, Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ProductService } from './product.service';
 import { UserGuard } from '../user/guards/user.guard';
 import { Roles } from '../user/domain/roles.enum';
@@ -36,6 +45,21 @@ export class ProductController {
     @Body() dto: UpdateProductDto,
   ) {
     const success = await this.productService.updateProduct(supplier, id, dto);
+    return { success: success };
+  }
+
+  @Get('/my')
+  @Role(Roles.SUPPLIER)
+  async getMyProducts(@Me('supplier') supplier: Supplier) {
+    return await this.productService.getMyProducts(supplier);
+  }
+
+  @Delete('delete/:id')
+  @Role(Roles.SUPPLIER)
+  async deleteProduct(
+    @Param('id') id: string,
+  ) {
+    const success = await this.productService.deleteProduct(id);
     return { success: success };
   }
 }

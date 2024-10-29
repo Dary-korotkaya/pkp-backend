@@ -43,4 +43,18 @@ export class ProductService {
 
     return true;
   }
+
+  async getMyProducts(supplier: Supplier) {
+    return this.productRepository.find({
+      where: { supplier: { id: supplier.id } },
+    });
+  }
+
+  async deleteProduct(id: string) {
+    const { affected } = await this.productRepository.delete({ id });
+    if (affected === 0) {
+      throw new NotFoundException('Product not found');
+    }
+    return true;
+  }
 }
